@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 const Card = ({flag, name}) => {
-    return (
- <div
+ return (
+ <div className="countryCard"
     style={{
         display:"flex",
         flexDirection:"column",
@@ -15,8 +15,7 @@ const Card = ({flag, name}) => {
         height:"200px",
         width:"200px",
         textAlign:"center"
-    }}
- >
+    }}>
  <img src={flag} alt={`Flag of ${name}`} 
  style={{height:"75px", width:"100px"}}/>
  <h2>{name}</h2>
@@ -24,12 +23,33 @@ const Card = ({flag, name}) => {
     );
 };
 
-const API = "https://xcountries-backend.labs.crio.do/all";
 export default function Countries(){
- const [countries, setCountries] = useState([]);
+   const [countries, setCountries] = useState([]);
+   const [value, setValue] = useState("");
+   const [filteredcountries, setFilteredcountries] =useState([]);
+   const [flag, setFlag]= useState(false);
 
- useEffect(()=>{
-     const fetchCountries= async ()=>{
+   const handleChange=(e)=>{
+    const value = e.target.value;
+    const filtered= countries.filter((eachCountry)=>(eachCountry.common.includes(value)));
+    setFilteredcountries(filtered);
+    setValue(value);
+    if(value!==""){
+      setFlag(true);
+    }
+   }
+
+  useEffect(() =>{
+   fetchCountries(value);
+   }, [value]);
+
+   useEffect(()=>{
+        fetchCountries();
+     },[]);  
+
+     const fetchCountries= async (value = "")=>{
+      let API = "https://countries-search-data-prod-812920491762.asia-south1.run.app/countries";
+      
        try{
         const response= await fetch(API);
     const jsonRes = await response.json();
@@ -38,18 +58,21 @@ export default function Countries(){
         console.error("Error fetching data:", error);
        }
         }; 
-        fetchCountries();
-    },[]);    
- return(
-    <div
-    style={{
+        
+     return(  
+       <>
+      <div style={{margin:"10px"}}><input type="text" placeholder="Search for countries..." onChange={handleChange}></input>
+      </div>
+      <div 
+      style={{
         display:"flex",
         flexWrap:"wrap",
         gap: "10px",
-        justifyContent:"center"
-    }}>
-     {countries.map((country) => 
-     <Card flag={country.flag} name={country.name} key={country.abbr}/>)}
-    </div>
- );
-}
+        justifyContent:"center" }}>
+       { (!flag)  && (countries.map((country) => 
+        <Card flag={country.png} name={country.common}/>))}
+        {flag && (filteredcountries.map((country) => 
+        <Card flag={country.png} name={country.common}/>))}
+        </div>
+         </>);
+      }
